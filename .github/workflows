@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - stage
+
+jobs:
+  deploy_server1:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up SSH for Server 1
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATEKEY_SERVER1 }}
+
+      - name: Add Known Hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SSH_HOST_SERVER1 }} >> ~/.ssh/known_hosts   
+      - name: Deploy to Server 1
+        run: |
+          ssh -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_SERVER1 }} "cd ${{ secrets.WORK_DIR }}  && git checkout ${{ secrets.STAGE_BRANCH }} && git pull origin stage && chown ${{ secrets.USER_DIR }}.${{ secrets.USER_DIR }} -R ${{ secrets.WORK_DIR }} && exit"
+  deploy_server2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set Up SSH for Server 2
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATEKEY_SERVER2 }} 
+
+      - name: Add Known Hosts
+        run: |
+         ssh-keyscan -H ${{ secrets.SSH_HOST_SERVER2 }} >> ~/.ssh/known_hosts  
+      - name: Deploy to Server 2
+        run: |
+          ssh -o StrictHostKeyChecking=yes ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_SERVER2 }} "cd ${{ secrets.WORK_DIR }}  && git checkout ${{ secrets.STAGE_BRANCH }} && git pull origin stage && chown ${{ secrets.USER_DIR }}.${{ secrets.USER_DIR }} -R ${{ secrets.WORK_DIR }} && exit"
